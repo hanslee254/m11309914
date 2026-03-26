@@ -58,6 +58,15 @@
         { label: 'GLITCH', x: 40, y: 170, w: 90, h: 40, active: false }
       ];
 
+      // 21 個 keypoint 各自的典雅顏色
+      const POINT_COLORS = [
+        '#ff6eb4','#ff9f7f','#ffd97f','#c8ff7f','#7fff9f',
+        '#7fffd4','#7fdfff','#7faeff','#ae7fff','#df7fff',
+        '#ff7fdf','#ff7fae','#ff4444','#ff8844','#ffdd44',
+        '#88ff44','#44ff88','#44ddff','#4488ff','#8844ff',
+        '#ff44cc',
+      ];
+
       function setup() {
         createCanvas(windowWidth, windowHeight);
         mainColor = color(colors[colorIdx]);
@@ -144,7 +153,7 @@
 
             checkButtons(tx, ty);
             drawSciFiSkeleton(hand, gx, gy);
-            drawFingertips(hand, gx, gy);
+            drawAllKeypoints(hand, gx, gy);
             drawHoloDial(hand, i, gx, gy);
             drawCursor(tx, ty);
           }
@@ -227,14 +236,33 @@
         }
       }
 
-      function drawFingertips(hand, gx, gy) {
-        [4, 8, 12, 16, 20].forEach(idx => {
-          let k = hand.keypoints[idx];
-          let x = map(k.x, 0, 640, 0, width) + gx, y = map(k.y, 0, 480, 0, height) + gy;
-          noFill(); stroke(255, 180); circle(x, y, 12);
-          fill(255, 150); textSize(9); text(`ID:${idx}`, x+15, y-10);
-        });
+      function drawAllKeypoints(hand, gx, gy) {
+        for (let i = 0; i < hand.keypoints.length; i++) {
+          let k = hand.keypoints[i];
+          let x = map(k.x, 0, 640, 0, width) + gx;
+          let y = map(k.y, 0, 480, 0, height) + gy;
+          let c = color(POINT_COLORS[i]);
+
+          // 光暈外圈
+          noFill(); stroke(red(c), green(c), blue(c), 80); strokeWeight(6);
+          circle(x, y, 36);
+          // 中圈
+          stroke(red(c), green(c), blue(c), 160); strokeWeight(2);
+          circle(x, y, 24);
+          // 實心點
+          fill(c); noStroke();
+          circle(x, y, 10);
+
+          // 指尖（id 4/8/12/16/20）額外加外薄圈
+          if ([4, 8, 12, 16, 20].includes(i)) {
+            noFill(); stroke(red(c), green(c), blue(c), 200); strokeWeight(1.5);
+            circle(x, y, 48);
+          }
+        }
       }
+
+      // 保留舊函數名（防止其他地方呼叫）
+      function drawFingertips(hand, gx, gy) { drawAllKeypoints(hand, gx, gy); }
 
       function drawVirtualButtons(gx, gy) {
         buttons.forEach(btn => {
